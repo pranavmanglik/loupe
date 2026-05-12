@@ -3,6 +3,8 @@ import httpx
 
 def normalize_url(url: str):
 
+    url = url.strip()
+
     if not url.startswith("http://") and not url.startswith("https://"):
         url = "https://" + url
 

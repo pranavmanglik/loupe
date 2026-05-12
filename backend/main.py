@@ -6,6 +6,7 @@ from services.fetcher import fetch_url
 from services.extractor import extract_content
 from services.chunker import chunk_text
 from services.retrieval import Retriever
+from services.llm import generate_answer
 
 app = FastAPI()
 
@@ -23,13 +24,6 @@ class ChatRequest(BaseModel):
     question: str
 
 
-@app.get("/")
-async def root():
-    return {
-        "message": "Loupe backend running"
-    }
-
-
 @app.post("/chat")
 async def chat(req: ChatRequest):
 
@@ -41,10 +35,17 @@ async def chat(req: ChatRequest):
 
     retriever = Retriever(chunks)
 
-    results = retriever.search(
-        req.question
+    relevant_chunks = retriever.search(
+        req.question,
+        n=5
+    )
+
+    answer = await generate_answer(
+        req.question,
+        relevant_chunks
     )
 
     return {
-        "chunks": results
+        "answer": answer,
+        "sources": relevant_chunks
     }
