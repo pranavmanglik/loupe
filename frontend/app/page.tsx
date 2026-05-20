@@ -1,7 +1,13 @@
 "use client";
 
-import { useState } from "react";
-import { Send, Sparkles } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+
+import ReactMarkdown from "react-markdown";
+
+import {
+  Send,
+  Sparkles,
+} from "lucide-react";
 
 type Message = {
   role: "user" | "assistant";
@@ -18,12 +24,23 @@ export default function HomePage() {
 
   const [messages, setMessages] = useState<Message[]>([]);
 
+  const messagesEndRef =
+    useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+
+    messagesEndRef.current?.scrollIntoView({
+      behavior: "smooth",
+    });
+
+  }, [messages, loading]);
+
   async function sendMessage() {
-
+  
     if (!input.trim()) return;
-
+  
     const question = input;
-
+  
     setMessages((prev) => [
       ...prev,
       {
@@ -31,43 +48,82 @@ export default function HomePage() {
         content: question,
       },
     ]);
-
+  
     setInput("");
-
+  
     setLoading(true);
-
+  
+    let assistantIndex = -1;
+  
+    setMessages((prev) => {
+  
+      assistantIndex = prev.length + 1;
+  
+      return [
+        ...prev,
+        {
+          role: "assistant",
+          content: "",
+        },
+      ];
+    });
+  
     try {
-
+  
       const response = await fetch(
         "http://127.0.0.1:8000/chat",
         {
           method: "POST",
-
+  
           headers: {
             "Content-Type": "application/json",
           },
-
+  
           body: JSON.stringify({
             url,
             question,
           }),
         }
       );
-
-      const data = await response.json();
-
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "assistant",
-          content:
-            data.answer ||
-            "No answer returned.",
-        },
-      ]);
-
+  
+      if (!response.body) return;
+  
+      const reader =
+        response.body.getReader();
+  
+      const decoder = new TextDecoder();
+  
+      let done = false;
+  
+      let accumulated = "";
+  
+      while (!done) {
+  
+        const result =
+          await reader.read();
+  
+        done = result.done;
+  
+        const chunk =
+          decoder.decode(result.value);
+  
+        accumulated += chunk;
+  
+        setMessages((prev) => {
+  
+          const updated = [...prev];
+  
+          updated[updated.length - 1] = {
+            role: "assistant",
+            content: accumulated,
+          };
+  
+          return updated;
+        });
+      }
+  
     } catch {
-
+  
       setMessages((prev) => [
         ...prev,
         {
@@ -76,14 +132,13 @@ export default function HomePage() {
             "Failed to contact backend.",
         },
       ]);
-
+  
     } finally {
-
+  
       setLoading(false);
-
+  
     }
   }
-
   return (
 
     <main
@@ -107,7 +162,6 @@ export default function HomePage() {
           py-5
           flex
           items-center
-          justify-between
         "
       >
 
@@ -145,7 +199,7 @@ export default function HomePage() {
 
       </div>
 
-      {/* URL Input */}
+      {/* URL */}
 
       <div
         className="
@@ -182,7 +236,7 @@ export default function HomePage() {
 
       </div>
 
-      {/* Chat Area */}
+      {/* Chat */}
 
       <div
         className="
@@ -290,7 +344,6 @@ export default function HomePage() {
                     px-5
                     py-4
                     leading-8
-                    whitespace-pre-wrap
                     text-sm
                     md:text-base
                     ${
@@ -300,7 +353,15 @@ export default function HomePage() {
                     }
                   `}
                 >
-                  {message.content}
+
+                  <div className="prose prose-invert max-w-none">
+
+                    <ReactMarkdown>
+                      {message.content}
+                    </ReactMarkdown>
+
+                  </div>
+
                 </div>
 
               </div>
@@ -320,6 +381,7 @@ export default function HomePage() {
                     px-5
                     py-4
                     text-zinc-400
+                    animate-pulse
                   "
                 >
                   Thinking...
@@ -328,6 +390,8 @@ export default function HomePage() {
               </div>
 
             )}
+
+            <div ref={messagesEndRef} />
 
           </div>
 

@@ -1,26 +1,32 @@
 from litellm import completion
 
+from core.config import (
+    OLLAMA_BASE_URL,
+    MODEL_NAME,
+)
 
-async def generate_answer(
+
+async def stream_answer(
     question: str,
-    chunks: list[str]
+    chunks: list[str],
 ):
 
     context = "\n\n".join(chunks)
 
     prompt = f"""
-You are Loupe, an AI research assistant.
+You are Loupe.
 
-Answer the user's question ONLY using the provided context.
+You are a grounded AI assistant.
 
-Provide:
-- a clean
+Answer ONLY using the provided context.
+
+Be:
 - concise
-- well-structured answer
+- conversational
+- accurate
 
-Do NOT dump raw text.
-
-If information is missing, say so clearly.
+If information is missing,
+say so clearly.
 
 QUESTION:
 {question}
@@ -30,14 +36,24 @@ CONTEXT:
 """
 
     response = completion(
-        model="ollama/deepseek-r1:1.5b",
-        api_base="http://localhost:11434",
+        model=MODEL_NAME,
+        api_base=OLLAMA_BASE_URL,
+        stream=True,
         messages=[
             {
                 "role": "user",
-                "content": prompt
+                "content": prompt,
             }
-        ]
+        ],
     )
 
-    return response.choices[0].message.content
+    for chunk in response:
+
+        delta = (
+            chunk.choices[0]
+            .delta
+            .content
+        )
+
+        if delta:
+            yield delta

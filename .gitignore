@@ -1,64 +1,65 @@
 # =========================
 # Node / Next.js
 # =========================
-frontend/node_modules/
-frontend/.next/
-frontend/out/
-frontend/build/
+
+frontend/node_modules
+frontend/.next
+frontend/out
+frontend/.turbo
+frontend/.vercel
 
 # Logs
-frontend/npm-debug.log*
-frontend/yarn-debug.log*
-frontend/yarn-error.log*
-frontend/pnpm-debug.log*
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
 
-# Env files
+# Env
 frontend/.env
 frontend/.env.local
-frontend/.env.development.local
-frontend/.env.production.local
+frontend/.env.production
 
 # =========================
 # Python / FastAPI
 # =========================
-backend/venv/
-backend/__pycache__/
-backend/**/*.pyc
-backend/**/*.pyo
-backend/**/*.pyd
 
-# Python cache
-backend/.pytest_cache/
-backend/.mypy_cache/
+backend/venv
+backend/__pycache__
+backend/**/*.pyc
+backend/.pytest_cache
+backend/.mypy_cache
 
 # Env
 backend/.env
 
 # =========================
+# Ollama / AI
+# =========================
+
+*.gguf
+*.bin
+
+# =========================
 # OS / Editor
 # =========================
+
 .DS_Store
 Thumbs.db
 
-# VSCode
-.vscode/
-
-# JetBrains
-.idea/
-
-# Vim
-*.swp
-*.swo
+.vscode
+.idea
 
 # =========================
 # Build / Temp
 # =========================
-*.log
-*.tmp
-*.temp
+
+dist
+build
+tmp
+temp
 
 # =========================
-# Optional data storage
+# Misc
 # =========================
-backend/data/*
-!backend/data/.gitkeep
+
+*.log
