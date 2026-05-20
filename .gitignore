@@ -28,7 +28,7 @@ backend/__pycache__
 backend/**/*.pyc
 backend/.pytest_cache
 backend/.mypy_cache
-.mypy_cache/3.14
+.mypy_cache
 
 # Env
 backend/.env

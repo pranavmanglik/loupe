@@ -1,28 +1,29 @@
 from fastapi import APIRouter
 from fastapi.responses import StreamingResponse
-
-from models.chat import ChatRequest
-
-from services.rag import run_rag
+import asyncio
 
 router = APIRouter()
 
 
 @router.post("/chat")
-async def chat(
-    req: ChatRequest
-):
+async def chat():
 
-    async def generator():
+    async def fake_stream():
 
-        async for token in run_rag(
-            req.url,
-            req.question,
-        ):
+        for word in [
+            "Hello ",
+            "from ",
+            "Loupe ",
+            "streaming!"
+        ]:
 
-            yield token.encode("utf-8")
+            await asyncio.sleep(1)
+
+            print("YIELDING:", word)
+
+            yield word
 
     return StreamingResponse(
-        generator(),
+        fake_stream(),
         media_type="text/plain",
     )
