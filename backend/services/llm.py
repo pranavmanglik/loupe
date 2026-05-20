@@ -1,12 +1,9 @@
 from litellm import completion
 
-from core.config import (
-    OLLAMA_BASE_URL,
-    MODEL_NAME,
-)
+from core.config import MODEL_NAME
 
 
-async def stream_answer(
+def stream_answer(
     question: str,
     chunks: list[str],
 ):
@@ -16,17 +13,7 @@ async def stream_answer(
     prompt = f"""
 You are Loupe.
 
-You are a grounded AI assistant.
-
 Answer ONLY using the provided context.
-
-Be:
-- concise
-- conversational
-- accurate
-
-If information is missing,
-say so clearly.
 
 QUESTION:
 {question}
@@ -37,7 +24,6 @@ CONTEXT:
 
     response = completion(
         model=MODEL_NAME,
-        api_base=OLLAMA_BASE_URL,
         stream=True,
         messages=[
             {
@@ -49,11 +35,16 @@ CONTEXT:
 
     for chunk in response:
 
-        delta = (
-            chunk.choices[0]
-            .delta
-            .content
-        )
+        try:
 
-        if delta:
-            yield delta
+            delta = (
+                chunk.choices[0]
+                .delta
+                .content
+            )
+
+            if delta:
+                yield delta
+
+        except:
+            pass
