@@ -23,7 +23,7 @@ async def run_rag(
         n=5
     )
 
-    async for token in stream_answer(
+    for token in stream_answer(
         question,
         relevant_chunks
     ):
