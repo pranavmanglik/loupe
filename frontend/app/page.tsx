@@ -36,109 +36,130 @@ export default function HomePage() {
   }, [messages, loading]);
 
   async function sendMessage() {
-  
+
     if (!input.trim()) return;
-  
+
+    if (!url.trim()) return;
+
     const question = input;
-  
+
     setMessages((prev) => [
       ...prev,
       {
         role: "user",
         content: question,
       },
+      {
+        role: "assistant",
+        content: "",
+      },
     ]);
-  
+
     setInput("");
-  
+
     setLoading(true);
-  
-    let assistantIndex = -1;
-  
-    setMessages((prev) => {
-  
-      assistantIndex = prev.length + 1;
-  
-      return [
-        ...prev,
-        {
-          role: "assistant",
-          content: "",
-        },
-      ];
-    });
-  
+
     try {
-  
+
+      console.log(
+        process.env.NEXT_PUBLIC_API_URL
+      );
+
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/chat`,
         {
           method: "POST",
-  
+
           headers: {
             "Content-Type": "application/json",
           },
-  
+
           body: JSON.stringify({
             url,
             question,
           }),
         }
       );
-  
-      if (!response.body) return;
-  
+
+      console.log(
+        "STATUS:",
+        response.status
+      );
+
+      if (!response.ok) {
+
+        throw new Error(
+          `HTTP ${response.status}`
+        );
+      }
+
+      if (!response.body) {
+
+        throw new Error(
+          "No response body"
+        );
+      }
+
       const reader =
         response.body.getReader();
-  
-      const decoder = new TextDecoder();
-  
-      let done = false;
-  
+
+      const decoder =
+        new TextDecoder();
+
       let accumulated = "";
-  
-      while (!done) {
-  
+
+      while (true) {
+
         const result =
           await reader.read();
-  
-        done = result.done;
-  
+
+        if (result.done) break;
+
         const chunk =
-          decoder.decode(result.value);
-  
+          decoder.decode(
+            result.value ||
+            new Uint8Array()
+          );
+
         accumulated += chunk;
-  
+
         setMessages((prev) => {
-  
+
           const updated = [...prev];
-  
+
           updated[updated.length - 1] = {
             role: "assistant",
             content: accumulated,
           };
-  
+
           return updated;
         });
       }
-  
-    } catch {
-  
-      setMessages((prev) => [
-        ...prev,
-        {
+
+    } catch (err) {
+
+      console.error(err);
+
+      setMessages((prev) => {
+
+        const updated = [...prev];
+
+        updated[updated.length - 1] = {
           role: "assistant",
           content:
             "Failed to contact backend.",
-        },
-      ]);
-  
+        };
+
+        return updated;
+      });
+
     } finally {
-  
+
       setLoading(false);
-  
+
     }
   }
+
   return (
 
     <main
@@ -215,7 +236,9 @@ export default function HomePage() {
 
           <input
             value={url}
-            onChange={(e) => setUrl(e.target.value)}
+            onChange={(e) =>
+              setUrl(e.target.value)
+            }
             placeholder="Paste webpage URL..."
             className="
               w-full
@@ -280,7 +303,13 @@ export default function HomePage() {
                   justify-center
                 "
               >
-                <Sparkles className="h-10 w-10 text-violet-400" />
+                <Sparkles
+                  className="
+                    h-10
+                    w-10
+                    text-violet-400
+                  "
+                />
               </div>
 
               <h2
@@ -304,8 +333,10 @@ export default function HomePage() {
                   leading-8
                 "
               >
-                Loupe extracts, retrieves and answers
-                questions grounded in webpage content.
+                Loupe extracts,
+                retrieves and answers
+                questions grounded in
+                webpage content.
               </p>
 
             </div>
@@ -324,49 +355,59 @@ export default function HomePage() {
             "
           >
 
-            {messages.map((message, index) => (
-
-              <div
-                key={index}
-                className={`
-                  flex
-                  ${message.role === "user"
-                    ? "justify-end"
-                    : "justify-start"}
-                `}
-              >
+            {messages.map(
+              (message, index) => (
 
                 <div
+                  key={index}
                   className={`
-                    max-w-[90%]
-                    md:max-w-[75%]
-                    rounded-3xl
-                    px-5
-                    py-4
-                    leading-8
-                    text-sm
-                    md:text-base
+                    flex
                     ${
                       message.role === "user"
-                        ? "bg-violet-600 text-white"
-                        : "bg-zinc-900 border border-zinc-800 text-zinc-100"
+                        ? "justify-end"
+                        : "justify-start"
                     }
                   `}
                 >
 
-                  <div className="prose prose-invert max-w-none">
+                  <div
+                    className={`
+                      max-w-[90%]
+                      md:max-w-[75%]
+                      rounded-3xl
+                      px-5
+                      py-4
+                      leading-8
+                      text-sm
+                      md:text-base
+                      ${
+                        message.role === "user"
+                          ? "bg-violet-600 text-white"
+                          : "bg-zinc-900 border border-zinc-800 text-zinc-100"
+                      }
+                    `}
+                  >
 
-                    <ReactMarkdown>
-                      {message.content}
-                    </ReactMarkdown>
+                    <div
+                      className="
+                        prose
+                        prose-invert
+                        max-w-none
+                      "
+                    >
+
+                      <ReactMarkdown>
+                        {message.content}
+                      </ReactMarkdown>
+
+                    </div>
 
                   </div>
 
                 </div>
 
-              </div>
-
-            ))}
+              )
+            )}
 
             {loading && (
 
@@ -422,7 +463,9 @@ export default function HomePage() {
 
           <textarea
             value={input}
-            onChange={(e) => setInput(e.target.value)}
+            onChange={(e) =>
+              setInput(e.target.value)
+            }
             placeholder="Ask anything..."
             rows={2}
             className="
@@ -455,6 +498,7 @@ export default function HomePage() {
               flex
               items-center
               justify-center
+              disabled:opacity-50
             "
           >
             <Send size={18} />
