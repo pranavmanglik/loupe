@@ -20,7 +20,7 @@ async def chat(
             req.question,
         ):
 
-            yield token
+            yield token.encode("utf-8")
 
     return StreamingResponse(
         generator(),
