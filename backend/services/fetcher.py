@@ -1,26 +1,23 @@
 import httpx
 
 
-def normalize_url(url: str):
-
-    url = url.strip()
-
-    if not url.startswith("http://") and not url.startswith("https://"):
-        url = "https://" + url
-
-    return url
-
-
 async def fetch_url(url: str):
 
-    url = normalize_url(url)
+    if not url.startswith(("http://", "https://")):
+        url = "https://" + url
 
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(
+        follow_redirects=True,
+        timeout=30,
+    ) as client:
 
         response = await client.get(
             url,
-            timeout=20,
-            follow_redirects=True
+            headers={
+                "User-Agent": "Mozilla/5.0",
+            },
         )
 
-    return response.text
+        response.raise_for_status()
+
+        return response.text
