@@ -5,7 +5,7 @@ from litellm import completion
 
 MODEL_NAME = os.getenv(
     "MODEL_NAME",
-    "groq/llama-3.3-70b-versatile"
+    "groq/llama-3.3-70b-versatile",
 )
 
 
@@ -17,7 +17,12 @@ def stream_answer(
     context = "\n\n".join(chunks)
 
     prompt = f"""
-Use the provided context to answer the question.
+You are a helpful RAG assistant.
+
+Answer ONLY using the provided context.
+
+If the answer is not present in the context,
+say you could not find it.
 
 Context:
 {context}

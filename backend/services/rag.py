@@ -1,8 +1,20 @@
 from services.fetcher import fetch_url
-from services.extractor import extract_content
-from services.chunker import chunk_text
-from services.retrieval import Retriever
-from services.llm import stream_answer
+
+from services.extractor import (
+    extract_content,
+)
+
+from services.chunker import (
+    chunk_text,
+)
+
+from services.retrieval import (
+    Retriever,
+)
+
+from services.llm import (
+    stream_answer,
+)
 
 
 async def run_rag(
@@ -20,12 +32,12 @@ async def run_rag(
 
     relevant_chunks = retriever.search(
         question,
-        n=5
+        n=5,
     )
 
     for token in stream_answer(
         question,
-        relevant_chunks
+        relevant_chunks,
     ):
 
         yield token
