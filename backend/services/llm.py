@@ -1,6 +1,12 @@
+import os
+
 from litellm import completion
 
-from core.config import MODEL_NAME
+
+MODEL_NAME = os.getenv(
+    "MODEL_NAME",
+    "groq/llama-3.3-70b-versatile"
+)
 
 
 def stream_answer(
@@ -11,40 +17,40 @@ def stream_answer(
     context = "\n\n".join(chunks)
 
     prompt = f"""
-You are Loupe.
+Use the provided context to answer the question.
 
-Answer ONLY using the provided context.
-
-QUESTION:
-{question}
-
-CONTEXT:
+Context:
 {context}
+
+Question:
+{question}
 """
 
     response = completion(
         model=MODEL_NAME,
-        stream=True,
+
+        api_key=os.getenv(
+            "OPENAI_API_KEY"
+        ),
+
         messages=[
             {
                 "role": "user",
                 "content": prompt,
             }
         ],
+
+        stream=True,
     )
 
     for chunk in response:
 
-        try:
+        delta = (
+            chunk.choices[0]
+            .delta
+            .content
+        )
 
-            delta = (
-                chunk.choices[0]
-                .delta
-                .content
-            )
+        if delta:
 
-            if delta:
-                yield delta
-
-        except:
-            pass
+            yield delta
