@@ -4,7 +4,8 @@ from collections import deque
 def expand_neighbors(
     graph,
     start_urls,
-    depth=2,
+    depth=1,
+    max_urls=15,
 ):
     visited = set()
 
@@ -16,6 +17,9 @@ def expand_neighbors(
     expanded = []
 
     while queue:
+
+        if len(expanded) >= max_urls:
+            break
 
         current, current_depth = (
             queue.popleft()
@@ -38,11 +42,13 @@ def expand_neighbors(
 
         for neighbor in node["links"]:
 
-            queue.append(
-                (
-                    neighbor,
-                    current_depth + 1,
+            if neighbor not in visited:
+
+                queue.append(
+                    (
+                        neighbor,
+                        current_depth + 1,
+                    )
                 )
-            )
 
     return expanded

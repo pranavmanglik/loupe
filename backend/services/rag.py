@@ -36,27 +36,54 @@ async def run_rag(
     question: str,
 ):
 
+    print()
+
+    print("Building docs graph...")
+
     graph = await build_docs_graph(
         url
     )
 
-    selected_urls = choose_candidate_pages(
+    print()
+
+    print("Choosing candidate URLs...")
+
+    selected_urls = choose_candidate_urls(
         question,
         graph,
     )
 
+    print()
+
+    print("Initial URLs:")
+
+    for u in selected_urls:
+        print(u)
+
     expanded_urls = expand_neighbors(
         graph,
         selected_urls,
-        depth=2,
+        depth=1,
+        max_urls=15,
     )
-    
+
     selected_urls = list(
         set(
             selected_urls +
             expanded_urls
         )
-    )
+    )[:10]
+
+    print()
+
+    print("Expanded URLs:")
+
+    for u in selected_urls:
+        print(u)
+
+    print()
+
+    print("Fetching pages...")
 
     pages = await fetch_pages(
         selected_urls
@@ -78,6 +105,10 @@ async def run_rag(
         all_content
     )
 
+    print()
+
+    print("Chunking content...")
+
     chunks = chunk_text(
         combined_content
     )
@@ -86,10 +117,18 @@ async def run_rag(
         chunks
     )
 
+    print()
+
+    print("Searching relevant chunks...")
+
     relevant_chunks = retriever.search(
         question,
         n=5,
     )
+
+    print()
+
+    print("Generating answer...")
 
     for token in stream_answer(
         question,
