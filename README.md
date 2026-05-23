@@ -1,103 +1,265 @@
 # Loupe
 
-> Agentic RAG for webpages.  
-> Paste a link. Ask questions. Get grounded answers with streaming responses.
+Agentic documentation retrieval for complex technical ecosystems.
+
+Loupe dynamically explores documentation structures, selects relevant paths, retrieves targeted context, and generates grounded answers using adaptive retrieval workflows.
 
 ---
 
-## Overview
+# Why Loupe?
 
-Loupe is a lightweight Agentic RAG system that:
+Traditional RAG systems usually:
 
-- fetches webpage content
-- extracts meaningful text
-- chunks and retrieves relevant context
-- queries an LLM
-- streams responses in real time
+- scrape entire websites
+- index everything blindly
+- retrieve chunks statically
 
-Built with:
+Loupe instead performs:
 
-- Next.js
+```text
+question
+ → docs graph discovery
+ → semantic route planning
+ → adaptive traversal
+ → targeted retrieval
+ → grounded response generation
+```
+
+This allows Loupe to work effectively across large documentation systems like:
+
+- Django
 - FastAPI
-- Groq
-- React Streaming UI
+- React
+- Python
+- LangChain
+- Kubernetes
+- and other deeply nested docs ecosystems
 
 ---
 
 # Features
 
-- Streaming chat interface
-- Webpage ingestion
-- Retrieval-Augmented Generation (RAG)
-- Markdown rendering
-- Groq-powered inference
-- Responsive UI
-- FastAPI backend
-- Deploy-ready architecture
+## Agentic Retrieval
+
+Loupe does not rely on naive full-site scraping.
+
+It:
+
+- builds lightweight documentation graphs
+- selects semantically relevant paths
+- recursively expands promising branches
+- retrieves only useful context
+
+---
+
+## Adaptive Documentation Traversal
+
+Instead of indexing every page upfront:
+
+```text
+root docs
+ → discover structure
+ → plan traversal
+ → expand relevant neighborhoods
+ → fetch selectively
+```
+
+This significantly improves:
+- scalability
+- retrieval precision
+- latency
+- token efficiency
+
+---
+
+## Streaming Responses
+
+Responses stream in real time using:
+- FastAPI
+- async generators
+- Groq inference
+
+---
+
+## Markdown-Aware Rendering
+
+Frontend supports:
+- markdown rendering
+- code blocks
+- streaming UI
+- conversational interaction
 
 ---
 
 # Architecture
 
 ```text
-User Question
-      ↓
-Frontend (Next.js)
-      ↓
-FastAPI Backend
-      ↓
-Fetch Webpage
-      ↓
-Extract Content
-      ↓
-Chunk Text
-      ↓
-Retrieve Relevant Chunks
-      ↓
-Groq LLM
-      ↓
-Stream Response
-      ↓
-Frontend Chat UI
+Question
+    ↓
+Docs Graph Builder
+    ↓
+Semantic Route Planner
+    ↓
+Recursive Graph Explorer
+    ↓
+Targeted Page Fetching
+    ↓
+Chunking
+    ↓
+Retrieval
+    ↓
+LLM Synthesis
+    ↓
+Streaming Response
 ```
 
 ---
 
 # Tech Stack
 
-| Layer | Technology |
-|---|---|
-| Frontend | Next.js 16 |
-| UI | React + Tailwind |
-| Backend | FastAPI |
-| LLM Provider | Groq |
-| Streaming | StreamingResponse |
-| Markdown | react-markdown |
+## Frontend
+
+- Next.js
+- React
+- TailwindCSS
+
+## Backend
+
+- FastAPI
+- Python
+- httpx
+- BeautifulSoup
+
+## AI
+
+- Groq
+- Llama 3.3 70B
+- Retrieval-Augmented Generation
+
+---
+
+# Current Retrieval Workflow
+
+## 1. Graph Construction
+
+Loupe crawls documentation roots and builds a lightweight graph:
+
+```python
+{
+    "url": {
+        "title": "...",
+        "links": [...]
+    }
+}
+```
+
+---
+
+## 2. Semantic Planning
+
+Relevant documentation paths are selected based on:
+- URL structure
+- semantic relevance
+- keyword scoring
+- graph relationships
+
+---
+
+## 3. Recursive Expansion
+
+Loupe expands nearby graph neighborhoods dynamically:
+
+```text
+models/
+ → querysets/
+ → queries/
+ → fields/
+```
+
+instead of crawling the entire documentation tree.
+
+---
+
+## 4. Retrieval
+
+Only relevant pages are:
+- fetched
+- extracted
+- chunked
+- retrieved
+
+This reduces:
+- unnecessary crawling
+- retrieval noise
+- latency
+
+---
+
+# Example
+
+Question:
+
+```text
+How does Django ORM work?
+```
+
+Loupe may traverse:
+
+```text
+topics/db/models/
+topics/db/queries/
+ref/models/querysets/
+ref/models/fields/
+```
+
+instead of blindly indexing the entire Django documentation site.
 
 ---
 
 # Project Structure
 
 ```text
-loupe/
-│
-├── frontend/
-│   ├── app/
-│   ├── components/
-│   └── ...
-│
-├── backend/
-│   ├── api/
-│   ├── services/
-│   ├── models/
-│   └── ...
-│
-└── README.md
+backend/
+├── api/
+├── core/
+├── models/
+├── services/
+│   ├── crawler.py
+│   ├── docs_graph.py
+│   ├── explorer.py
+│   ├── planner.py
+│   ├── retrieval.py
+│   ├── rag.py
+│   └── llm.py
+└── main.py
+
+frontend/
+└── app/
 ```
 
 ---
 
-# Frontend Setup
+# Running Locally
+
+## Backend
+
+```bash
+cd backend
+
+python -m venv venv
+
+source venv/bin/activate
+# Windows:
+# venv\\Scripts\\activate
+
+pip install -r requirements.txt
+
+uvicorn main:app --reload
+```
+
+---
+
+## Frontend
 
 ```bash
 cd frontend
@@ -107,137 +269,49 @@ npm install
 npm run dev
 ```
 
-Frontend runs on:
-
-```text
-http://localhost:3000
-```
-
----
-
-# Backend Setup
-
-```bash
-cd backend
-
-pip install -r requirements.txt
-
-uvicorn main:app --reload
-```
-
-Backend runs on:
-
-```text
-http://127.0.0.1:8000
-```
-
 ---
 
 # Environment Variables
 
-## Frontend
-
-Create:
-
-```text
-frontend/.env.local
-```
-
-Add:
-
-```env
-NEXT_PUBLIC_API_URL=http://127.0.0.1:8000
-```
-
----
-
 ## Backend
 
-Create:
-
-```text
-backend/.env
-```
-
-Add:
-
 ```env
-GROQ_API_KEY=your_groq_api_key
+GROQ_API_KEY=your_api_key
+MODEL_NAME=llama-3.3-70b-versatile
 ```
-
----
-
-# Example Usage
-
-1. Paste webpage URL
-2. Ask question
-3. Loupe:
-   - extracts webpage
-   - retrieves relevant context
-   - streams grounded answer
-
----
-
-# Example Questions
-
-```text
-What is this article about?
-
-Summarize the main points.
-
-What technologies are mentioned?
-
-Explain this section in simple terms.
-```
-
----
-
-# Deployment
 
 ## Frontend
-Deploy on:
-- Vercel
 
-## Backend
-Deploy on:
-- Render
+```env
+NEXT_PUBLIC_API_URL=http://localhost:8000
+```
 
 ---
 
-# Future Plans
+# Roadmap
 
-- Vector database support
-- Multi-page ingestion
-- PDF support
-- Source citations
-- Agent workflows
-- Local Ollama mode
-- Multi-model routing
-- Conversation memory
-
----
-
-# Why Loupe?
-
-Most RAG systems are:
-- overengineered
-- slow
-- difficult to deploy
-
-Loupe focuses on:
-- simplicity
-- streaming UX
-- fast iteration
-- clean architecture
+- Vector database integration
+- Embedding-based hybrid retrieval
+- Reflection loops
+- Confidence scoring
+- Persistent graph caching
+- Citation generation
+- Incremental indexing
+- Multi-hop retrieval planning
+- Autonomous recursive exploration
 
 ---
 
-# License
+# Vision
 
-MIT
+Loupe is moving toward:
+
+```text
+adaptive retrieval orchestration
+```
+
+rather than static chatbot-style RAG.
+
+The long-term goal is a retrieval system capable of intelligently navigating and reasoning across massive technical documentation ecosystems.
 
 ---
-
-# Author
-
-Built by Pranav Manglik.
