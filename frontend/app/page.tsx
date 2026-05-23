@@ -125,7 +125,7 @@ export default function Page() {
   }
 
   return (
-    <main className="relative flex h-screen flex-col overflow-hidden bg-black text-zinc-100">
+  <main className="relative flex h-[100dvh] flex-col overflow-hidden bg-black text-zinc-100">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(120,119,198,0.12),transparent_40%)]" />
 
       <header className="relative z-20 border-b border-zinc-900 bg-black/60 backdrop-blur-xl">
@@ -180,7 +180,7 @@ export default function Page() {
         </div>
       </header>
 
-      <div className="relative flex flex-1 flex-col overflow-hidden">
+      <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
         {messages.length === 0 && (
           <div className="pointer-events-none absolute inset-0 flex items-center justify-center px-6">
             <div className="mb-24 text-center">
