@@ -10,72 +10,117 @@ from bs4 import BeautifulSoup
 
 async def build_docs_graph(
     root_url: str,
-    max_links: int = 100,
+    max_pages=25,
 ):
-
     graph = {}
 
-    domain = urlparse(root_url).netloc
+    discovered = set()
+
+    queue = [root_url]
 
     async with httpx.AsyncClient(
-        timeout=20,
+        timeout=10,
         follow_redirects=True,
     ) as client:
 
-        response = await client.get(root_url)
+        while queue:
 
-        soup = BeautifulSoup(
-            response.text,
-            "html.parser",
-        )
-
-        links = soup.find_all("a")
-
-        discovered = set()
-
-        for link in links:
-
-            href = link.get("href")
-
-            text = (
-                link.get_text(strip=True)
-            )
-
-            if not href:
-                continue
-
-            absolute = urljoin(
-                root_url,
-                href,
-            )
-
-            parsed = urlparse(
-                absolute
-            )
-
-            if parsed.netloc != domain:
-                continue
-
-            if "#" in absolute:
-                continue
-
-            if absolute in discovered:
-                continue
-
-            discovered.add(absolute)
-
-            graph[absolute] = {
-                "title": text,
-                "links": [],
-                "visited": False,
-                "content": None,
-            }
-
-            graph[root_url]["links"].append(
-                absolute
-            )
-
-            if len(graph) >= max_links:
+            if len(discovered) >= max_pages:
                 break
+
+            current_url = queue.pop(0)
+
+            if current_url in discovered:
+                continue
+
+            discovered.add(current_url)
+
+            print(
+                f"Crawling: {current_url}"
+            )
+
+            try:
+
+                response = await client.get(
+                    current_url
+                )
+
+                soup = BeautifulSoup(
+                    response.text,
+                    "html.parser",
+                )
+
+                graph.setdefault(
+                    current_url,
+                    {
+                        "title": (
+                            soup.title.string
+                            if soup.title
+                            else current_url
+                        ),
+                        "links": [],
+                        "visited": False,
+                        "content": None,
+                    },
+                )
+
+                for link in soup.find_all(
+                    "a",
+                    href=True,
+                ):
+
+                    href = link["href"]
+
+                    absolute = urljoin(
+                        current_url,
+                        href,
+                    )
+
+                    parsed_root = urlparse(
+                        root_url
+                    ).netloc
+
+                    parsed_absolute = urlparse(
+                        absolute
+                    ).netloc
+
+                    if (
+                        parsed_root
+                        != parsed_absolute
+                    ):
+                        continue
+
+                    if "#" in absolute:
+                        continue
+
+                    if absolute.endswith(
+                        (
+                            ".png",
+                            ".jpg",
+                            ".svg",
+                            ".pdf",
+                            ".zip",
+                        )
+                    ):
+                        continue
+
+                    graph[current_url][
+                        "links"
+                    ].append(absolute)
+
+                    if (
+                        absolute
+                        not in discovered
+                    ):
+                        queue.append(
+                            absolute
+                        )
+
+            except Exception as e:
+
+                print(
+                    f"Graph error: {current_url}",
+                    e,
+                )
 
     return graph
