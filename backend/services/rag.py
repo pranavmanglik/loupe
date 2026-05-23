@@ -2,10 +2,6 @@ from services.docs_graph import (
     build_docs_graph,
 )
 
-from services.agent import (
-    choose_relevant_pages,
-)
-
 from services.crawler import (
     fetch_pages,
 )
