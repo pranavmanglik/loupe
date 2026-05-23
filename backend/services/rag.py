@@ -14,6 +14,14 @@ from services.extractor import (
     extract_content,
 )
 
+from services.planner import (
+    choose_candidate_urls,
+)
+
+from services.explorer import (
+    expand_neighbors,
+)
+
 from services.chunker import (
     chunk_text,
 )
@@ -32,34 +40,27 @@ async def run_rag(
     question: str,
 ):
 
-    print()
-
-    print("Building docs graph...")
-
     graph = await build_docs_graph(
         url
     )
 
-    print()
-
-    print("Choosing relevant pages...")
-
-    selected_urls = choose_relevant_pages(
+    selected_urls = choose_candidate_pages(
         question,
         graph,
     )
 
-    print()
-
-    print("Selected URLs:")
-
-    for u in selected_urls:
-
-        print(u)
-
-    print()
-
-    print("Fetching selected pages...")
+    expanded_urls = expand_neighbors(
+        graph,
+        selected_urls,
+        depth=2,
+    )
+    
+    selected_urls = list(
+        set(
+            selected_urls +
+            expanded_urls
+        )
+    )
 
     pages = await fetch_pages(
         selected_urls

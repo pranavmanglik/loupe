@@ -66,7 +66,14 @@ async def build_docs_graph(
 
             graph[absolute] = {
                 "title": text,
+                "links": [],
+                "visited": False,
+                "content": None,
             }
+
+            graph[root_url]["links"].append(
+                absolute
+            )
 
             if len(graph) >= max_links:
                 break
