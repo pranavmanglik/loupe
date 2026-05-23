@@ -1,11 +1,10 @@
 import os
 
-from litellm import completion
+from groq import Groq
 
 
-MODEL_NAME = os.getenv(
-    "MODEL_NAME",
-    "groq/llama-3.3-70b-versatile",
+client = Groq(
+    api_key=os.getenv("OPENAI_API_KEY")
 )
 
 
@@ -17,12 +16,7 @@ def stream_answer(
     context = "\n\n".join(chunks)
 
     prompt = f"""
-You are a helpful RAG assistant.
-
-Answer ONLY using the provided context.
-
-If the answer is not present in the context,
-say you could not find it.
+Use the context below to answer the question.
 
 Context:
 {context}
@@ -31,12 +25,8 @@ Question:
 {question}
 """
 
-    response = completion(
-        model=MODEL_NAME,
-
-        api_key=os.getenv(
-            "OPENAI_API_KEY"
-        ),
+    stream = client.chat.completions.create(
+        model="llama-3.3-70b-versatile",
 
         messages=[
             {
@@ -45,17 +35,19 @@ Question:
             }
         ],
 
+        temperature=0.4,
+
         stream=True,
     )
 
-    for chunk in response:
+    for chunk in stream:
 
-        delta = (
+        content = (
             chunk.choices[0]
             .delta
             .content
         )
 
-        if delta:
+        if content:
 
-            yield delta
+            yield content
