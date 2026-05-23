@@ -1,77 +1,56 @@
-"use client";
+"use client"
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react"
 
-import ReactMarkdown from "react-markdown";
+import ReactMarkdown from "react-markdown"
 
-import {
-  Send,
-  Sparkles,
-} from "lucide-react";
+export default function Page() {
+  const [url, setUrl] = useState("")
+  const [question, setQuestion] = useState("")
+  const [loading, setLoading] = useState(false)
 
-type Message = {
-  role: "user" | "assistant";
-  content: string;
-};
+  const [showUrlInput, setShowUrlInput] =
+    useState(false)
 
-export default function HomePage() {
+  const [messages, setMessages] = useState<
+    {
+      role: string
+      content: string
+    }[]
+  >([])
 
-  const [url, setUrl] = useState("");
-
-  const [input, setInput] = useState("");
-
-  const [loading, setLoading] = useState(false);
-
-  const [messages, setMessages] = useState<Message[]>([]);
-
-  const messagesEndRef =
-    useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-
-    messagesEndRef.current?.scrollIntoView({
-      behavior: "smooth",
-    });
-
-  }, [messages, loading]);
-
-  async function sendMessage() {
-
-    if (!input.trim()) return;
-
-    if (!url.trim()) return;
-
-    const question = input;
+  async function handleSubmit() {
+    if (!url || !question || loading) {
+      return
+    }
 
     setMessages((prev) => [
       ...prev,
+
       {
         role: "user",
         content: question,
       },
+
       {
         role: "assistant",
         content: "",
       },
-    ]);
+    ])
 
-    setInput("");
-
-    setLoading(true);
+    setLoading(true)
 
     try {
-
-      console.log(
-        process.env.NEXT_PUBLIC_API_URL
-      );
-
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/chat`,
+        process.env.NEXT_PUBLIC_API_URL +
+          "/chat",
+
         {
           method: "POST",
 
           headers: {
-            "Content-Type": "application/json",
+            "Content-Type":
+              "application/json",
           },
 
           body: JSON.stringify({
@@ -79,435 +58,223 @@ export default function HomePage() {
             question,
           }),
         }
-      );
-
-      console.log(
-        "STATUS:",
-        response.status
-      );
-
-      if (!response.ok) {
-
-        throw new Error(
-          `HTTP ${response.status}`
-        );
-      }
+      )
 
       if (!response.body) {
-
         throw new Error(
           "No response body"
-        );
+        )
       }
 
       const reader =
-        response.body.getReader();
+        response.body.getReader()
 
       const decoder =
-        new TextDecoder();
+        new TextDecoder()
 
-      let accumulated = "";
+      let finalText = ""
 
       while (true) {
+        const { done, value } =
+          await reader.read()
 
-        const result =
-          await reader.read();
+        if (done) {
+          break
+        }
 
-        if (result.done) break;
+        const chunk = decoder.decode(
+          value || new Uint8Array()
+        )
 
-        const chunk =
-          decoder.decode(
-            result.value ||
-            new Uint8Array()
-          );
-
-        accumulated += chunk;
+        finalText += chunk
 
         setMessages((prev) => {
+          const updated = [...prev]
 
-          const updated = [...prev];
-
-          updated[updated.length - 1] = {
+          updated[
+            updated.length - 1
+          ] = {
             role: "assistant",
-            content: accumulated,
-          };
+            content: finalText,
+          }
 
-          return updated;
-        });
+          return updated
+        })
       }
-
     } catch (err) {
-
-      console.error(err);
+      console.error(err)
 
       setMessages((prev) => {
+        const updated = [...prev]
 
-        const updated = [...prev];
-
-        updated[updated.length - 1] = {
+        updated[
+          updated.length - 1
+        ] = {
           role: "assistant",
           content:
-            "Failed to contact backend.",
-        };
+            "Failed to generate response.",
+        }
 
-        return updated;
-      });
-
-    } finally {
-
-      setLoading(false);
-
+        return updated
+      })
     }
+
+    setLoading(false)
+
+    setQuestion("")
   }
 
   return (
+    <main className="relative flex h-screen flex-col overflow-hidden bg-black text-zinc-100">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(120,119,198,0.12),transparent_40%)]" />
 
-    <main
-      className="
-        h-screen
-        bg-black
-        text-white
-        flex
-        flex-col
-      "
-    >
+      <header className="relative z-20 border-b border-zinc-900 bg-black/60 backdrop-blur-xl">
+        <div className="flex h-16 items-center justify-between px-6">
+          <h1 className="text-2xl font-semibold tracking-tight">
+            Loupe
+          </h1>
 
-      {/* Header */}
-
-      <div
-        className="
-          border-b
-          border-zinc-800
-          px-4
-          md:px-8
-          py-5
-          flex
-          items-center
-        "
-      >
-
-        <div className="flex items-center gap-4">
-
-          <div
-            className="
-              h-12
-              w-12
-              rounded-2xl
-              bg-violet-600
-              flex
-              items-center
-              justify-center
-              text-xl
-              font-bold
-            "
-          >
-            L
-          </div>
-
-          <div>
-
-            <h1 className="text-2xl font-bold">
-              Loupe
-            </h1>
-
-            <p className="text-sm text-zinc-500">
-              Agentic Link RAG
-            </p>
-
-          </div>
-
-        </div>
-
-      </div>
-
-      {/* URL */}
-
-      <div
-        className="
-          border-b
-          border-zinc-800
-          px-4
-          md:px-8
-          py-4
-        "
-      >
-
-        <div className="max-w-5xl mx-auto">
-
-          <input
-            value={url}
-            onChange={(e) =>
-              setUrl(e.target.value)
-            }
-            placeholder="Paste webpage URL..."
-            className="
-              w-full
-              rounded-2xl
-              border
-              border-zinc-800
-              bg-zinc-900
-              px-5
-              py-4
-              outline-none
-              placeholder:text-zinc-500
-              focus:border-violet-500
-              transition
-            "
-          />
-
-        </div>
-
-      </div>
-
-      {/* Chat */}
-
-      <div
-        className="
-          flex-1
-          overflow-y-auto
-          px-4
-          py-8
-        "
-      >
-
-        {messages.length === 0 ? (
-
-          <div
-            className="
-              h-full
-              flex
-              items-center
-              justify-center
-            "
-          >
-
-            <div
-              className="
-                max-w-3xl
-                text-center
-              "
-            >
-
-              <div
-                className="
-                  mx-auto
-                  mb-8
-                  h-20
-                  w-20
-                  rounded-3xl
-                  bg-violet-600/20
-                  border
-                  border-violet-500/20
-                  flex
-                  items-center
-                  justify-center
-                "
-              >
-                <Sparkles
-                  className="
-                    h-10
-                    w-10
-                    text-violet-400
-                  "
+          <div className="flex items-center gap-3">
+            {showUrlInput && (
+              <div className="flex items-center overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900/80 transition focus-within:border-violet-500">
+                <input
+                  type="text"
+                  value={url}
+                  onChange={(e) =>
+                    setUrl(e.target.value)
+                  }
+                  placeholder="https://docs.example.com"
+                  className="w-80 bg-transparent px-4 py-2 text-sm outline-none"
                 />
-              </div>
 
-              <h2
-                className="
-                  text-4xl
-                  md:text-7xl
-                  font-bold
-                  leading-tight
-                  mb-6
-                "
-              >
-                Ask anything
-                about a webpage
+                <button
+                  onClick={() => {
+                    setShowUrlInput(
+                      false
+                    )
+                  }}
+                  className="border-l border-zinc-800 px-4 py-2 text-zinc-400 transition hover:bg-zinc-800 hover:text-white"
+                >
+                  ↵
+                </button>
+              </div>
+            )}
+
+            <button
+              onClick={() =>
+                setShowUrlInput(
+                  !showUrlInput
+                )
+              }
+              className={`rounded-2xl border px-4 py-2 text-sm transition ${
+                url
+                  ? "border-violet-500/40 bg-violet-500/10 text-violet-300"
+                  : "border-zinc-800 bg-zinc-900/70 hover:border-violet-500"
+              }`}
+            >
+              {url
+                ? "Docs Loaded"
+                : "Docs"}
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <div className="relative flex flex-1 flex-col overflow-hidden">
+        {messages.length === 0 && (
+          <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+            <div className="mb-24 text-center">
+              <h2 className="text-5xl font-semibold tracking-tight text-zinc-200">
+                Agentic documentation retrieval
               </h2>
 
-              <p
-                className="
-                  text-zinc-500
-                  text-base
-                  md:text-xl
-                  leading-8
-                "
-              >
-                Loupe extracts,
-                retrieves and answers
-                questions grounded in
-                webpage content.
+              <p className="mt-5 text-lg text-zinc-500">
+                Ask questions across
+                complex technical docs
               </p>
-
             </div>
-
           </div>
-
-        ) : (
-
-          <div
-            className="
-              mx-auto
-              flex
-              max-w-5xl
-              flex-col
-              gap-6
-            "
-          >
-
-            {messages.map(
-              (message, index) => (
-
-                <div
-                  key={index}
-                  className={`
-                    flex
-                    ${
-                      message.role === "user"
-                        ? "justify-end"
-                        : "justify-start"
-                    }
-                  `}
-                >
-
-                  <div
-                    className={`
-                      max-w-[90%]
-                      md:max-w-[75%]
-                      rounded-3xl
-                      px-5
-                      py-4
-                      leading-8
-                      text-sm
-                      md:text-base
-                      ${
-                        message.role === "user"
-                          ? "bg-violet-600 text-white"
-                          : "bg-zinc-900 border border-zinc-800 text-zinc-100"
-                      }
-                    `}
-                  >
-
-                    <div
-                      className="
-                        prose
-                        prose-invert
-                        max-w-none
-                      "
-                    >
-
-                      <ReactMarkdown>
-                        {message.content}
-                      </ReactMarkdown>
-
-                    </div>
-
-                  </div>
-
-                </div>
-
-              )
-            )}
-
-            {loading && (
-
-              <div className="flex justify-start">
-
-                <div
-                  className="
-                    rounded-3xl
-                    border
-                    border-zinc-800
-                    bg-zinc-900
-                    px-5
-                    py-4
-                    text-zinc-400
-                    animate-pulse
-                  "
-                >
-                  Thinking...
-                </div>
-
-              </div>
-
-            )}
-
-            <div ref={messagesEndRef} />
-
-          </div>
-
         )}
 
-      </div>
+        <div className="relative z-10 flex-1 overflow-y-auto">
+          <div className="mx-auto flex w-full max-w-5xl flex-col gap-8 px-6 py-10">
+            {messages.map(
+              (message, index) => (
+                <div
+                  key={index}
+                  className={`flex ${
+                    message.role ===
+                    "user"
+                      ? "justify-end"
+                      : "justify-start"
+                  }`}
+                >
+                  <div
+                    className={`rounded-3xl border px-6 py-5 shadow-2xl backdrop-blur ${
+                      message.role ===
+                      "user"
+                        ? "max-w-2xl border-violet-500/20 bg-violet-600 text-white"
+                        : "max-w-4xl border-zinc-800 bg-zinc-900/80"
+                    }`}
+                  >
+                    {message.role ===
+                    "assistant" ? (
+                      <div className="prose prose-invert max-w-none text-base leading-8 prose-headings:text-zinc-100 prose-p:text-zinc-300 prose-strong:text-white prose-code:text-violet-300 prose-pre:rounded-2xl prose-pre:border prose-pre:border-zinc-700 prose-pre:bg-black/70">
+                        <ReactMarkdown>
+                          {
+                            message.content
+                          }
+                        </ReactMarkdown>
 
-      {/* Input */}
-
-      <div
-        className="
-          border-t
-          border-zinc-800
-          px-4
-          md:px-8
-          py-5
-        "
-      >
-
-        <div
-          className="
-            mx-auto
-            flex
-            max-w-5xl
-            gap-4
-          "
-        >
-
-          <textarea
-            value={input}
-            onChange={(e) =>
-              setInput(e.target.value)
-            }
-            placeholder="Ask anything..."
-            rows={2}
-            className="
-              flex-1
-              resize-none
-              rounded-3xl
-              border
-              border-zinc-800
-              bg-zinc-900
-              px-5
-              py-4
-              outline-none
-              placeholder:text-zinc-500
-              focus:border-violet-500
-              transition
-            "
-          />
-
-          <button
-            onClick={sendMessage}
-            disabled={loading}
-            className="
-              h-14
-              w-14
-              shrink-0
-              rounded-2xl
-              bg-violet-600
-              hover:bg-violet-500
-              transition
-              flex
-              items-center
-              justify-center
-              disabled:opacity-50
-            "
-          >
-            <Send size={18} />
-          </button>
-
+                        {loading &&
+                          index ===
+                            messages.length -
+                              1 && (
+                            <span className="animate-pulse text-violet-400">
+                              ▋
+                            </span>
+                          )}
+                      </div>
+                    ) : (
+                      <p className="whitespace-pre-wrap text-base leading-8">
+                        {
+                          message.content
+                        }
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )
+            )}
+          </div>
         </div>
 
-      </div>
+        <div className="relative z-20 border-t border-zinc-900 bg-black/70 backdrop-blur-2xl">
+          <div className="mx-auto flex w-full max-w-4xl justify-center px-6 py-6">
+            <div className="flex w-full items-end gap-3">
+              <textarea
+                placeholder="Ask technical questions about the documentation..."
+                value={question}
+                onChange={(e) =>
+                  setQuestion(
+                    e.target.value
+                  )
+                }
+                rows={1}
+                className="flex-1 resize-none rounded-full border border-zinc-800 bg-zinc-900/80 px-6 py-5 text-base leading-6 outline-none transition focus:border-violet-500"
+              />
 
+              <button
+                onClick={handleSubmit}
+                disabled={loading}
+                className="flex h-14 w-14 items-center justify-center rounded-full bg-violet-600 text-xl text-white transition hover:bg-violet-500 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                ↑
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     </main>
-  );
+  )
 }
